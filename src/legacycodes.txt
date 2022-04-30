@@ -1,0 +1,60 @@
+// This function uses libevdev. It is too slow so I move to libusb
+
+static int t503_locate0(void) {
+    char device_full_path_name[PATH_MAX] = "/dev/input/";
+    char * const device_name = device_full_path_name + strlen(device_full_path_name);
+    DIR *inputdir = opendir(device_full_path_name);
+    if (!inputdir) goto error_opendir;
+
+    struct dirent *ent;
+    struct libevdev *dev[6] = {};
+    size_t curr_i = 0;
+    int fd;
+
+    errno = 0;
+    while ((ent = readdir(inputdir))) {
+        strcpy(device_name, ent->d_name);
+        struct stat sb;
+        if (stat(device_full_path_name, &sb) || !S_ISCHR(sb.st_mode)) continue;
+
+
+        fd = open(device_full_path_name, O_RDONLY);
+        if (fd == -1) continue;
+
+        if (libevdev_new_from_fd(fd, dev + curr_i) < 0) goto continue_device_not_available;
+        if (!(libevdev_get_id_vendor(dev[curr_i]) == T503_ID_VENDOR
+            && libevdev_get_id_product(dev[curr_i]) == T503_ID_PRODUCT)) goto continue_not_this_device; 
+        debugf("Found character device %s\n", device_full_path_name);
+        debugf("  device name: \"%s\"\n", libevdev_get_name(dev[curr_i]));
+
+        curr_i++;
+
+        continue;
+
+        continue_not_this_device:
+            libevdev_free(dev[curr_i]);
+        continue_device_not_available:
+            close(fd);
+    }
+
+    while (1) {
+        for (size_t i = 0; i < 5; i++) {
+            if (libevdev_has_event_pending(dev[i])) {
+                struct input_event ev;
+                libevdev_next_event(dev[i], LIBEVDEV_READ_FLAG_NORMAL, &ev);
+                debugf("Event from dev%zd: %d\n", i, ev.value);
+            }
+        }
+        usleep(1000);
+    }
+    EV_SYN;
+
+    return 0;
+
+error_readdir:
+    closedir(inputdir);
+error_opendir:
+    fprintf(stdout, "ts03_locate error %d: Error description: %s\n", errno, strerror(errno));
+    return -1;
+
+}
