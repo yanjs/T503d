@@ -17,8 +17,8 @@ You can edit `src/T503_key_settings.inc` and re`make` to customize the key bindi
 Make and running in the foreground (administrator privilege required).
 
 ```console
-$ make
-# build/T503d
+cmake CMakeLists.txt
+make
 ```
 
 ## Issues
