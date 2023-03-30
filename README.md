@@ -32,7 +32,7 @@ make
 Running in the foreground (administrator privilege required).
 
 ```console
-sudo ./build/t503d
+sudo ./build/T503d
 ```
 
 ## Issues
