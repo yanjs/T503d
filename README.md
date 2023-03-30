@@ -12,13 +12,27 @@ libusb 1.0.26
 
 You can edit `src/T503_key_settings.inc` and re`make` to customize the key bindings for all 6 buttons.
 
-## Usage
+## Build
 
-Make and running in the foreground (administrator privilege required).
+To build the driver using CMake, run the following commands:
 
 ```console
-$ make
-# build/T503d
+cmake -S . -B ./build
+cmake --build ./build
+```
+
+Alternatively, you can use MakeFile:
+
+```console
+make
+```
+
+## Usage
+
+Running in the foreground (administrator privilege required).
+
+```console
+sudo ./build/T503d
 ```
 
 ## Issues
